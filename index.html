@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>India PIN Code Lookup</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f7f7f5; --bg3: #f0efe9;
+    --text: #1a1a1a; --text2: #6b6b6b; --text3: #9a9a9a;
+    --border: #e2e2de; --border2: #c8c8c2;
+    --green: #1D9E75; --green-bg: #E1F5EE; --green-dark: #085041;
+    --red: #E24B4A; --red-bg: #FCEBEB; --red-dark: #A32D2D;
+    --radius: 10px; --radius-lg: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1c; --bg2: #252525; --bg3: #2e2e2e;
+      --text: #f0f0ee; --text2: #a0a09a; --text3: #606060;
+      --border: #3a3a36; --border2: #4e4e48;
+      --green-bg: #0a3328; --green-dark: #9FE1CB;
+      --red-bg: #3a1212; --red-dark: #F09595;
+    }
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg3); color: var(--text);
+    min-height: 100vh; display: flex; align-items: flex-start;
+    justify-content: center; padding: 2rem 1rem;
+  }
+  .app { width: 100%; max-width: 520px; }
+  .header { text-align: center; margin-bottom: 2rem; }
+  .header .flag { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  .header p { font-size: 14px; color: var(--text2); margin-top: 5px; }
+
+  .card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem;
+  }
+
+  .pin-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 1rem; }
+  .sep { width: 14px; height: 2px; background: var(--border2); border-radius: 2px; align-self: center; flex-shrink: 0; }
+  .grp { display: flex; gap: 8px; }
+  .pbox {
+    width: 52px; height: 62px; text-align: center;
+    font-size: 26px; font-weight: 600; font-family: 'SF Mono', 'Fira Code', monospace;
+    border: 1.5px solid var(--border); border-radius: var(--radius);
+    background: var(--bg2); color: var(--text);
+    outline: none; caret-color: transparent; transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .pbox:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(29,158,117,0.15); }
+  .pbox.has { border-color: var(--border2); background: var(--bg); }
+  .pbox.err { border-color: var(--red); background: var(--red-bg); }
+
+  .actions { display: flex; gap: 8px; }
+  .btn-primary {
+    flex: 1; padding: 12px; font-size: 15px; font-weight: 500;
+    border-radius: var(--radius); cursor: pointer;
+    border: 1.5px solid var(--green); background: var(--green); color: #fff;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-reset {
+    padding: 12px 16px; border-radius: var(--radius); cursor: pointer;
+    border: 1.5px solid var(--border); background: transparent; color: var(--text2);
+    font-size: 18px; transition: border-color 0.15s;
+  }
+  .btn-reset:hover { border-color: var(--border2); }
+  .errmsg { font-size: 13px; color: var(--red); text-align: center; min-height: 20px; margin: 8px 0 0; }
+
+  .result { display: none; }
+  .result.show { display: block; }
+  .result-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+  }
+  .pin-badge {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .pin-icon {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--green-bg); display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .pin-num { font-size: 22px; font-weight: 600; letter-spacing: 1.5px; }
+  .pin-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .valid-chip {
+    font-size: 11px; padding: 4px 12px; border-radius: 20px;
+    background: var(--green-bg); color: var(--green-dark); font-weight: 600;
+  }
+  .invalid-chip {
+    font-size: 11px; padding: 4px 12px; border-radius: 20px;
+    background: var(--red-bg); color: var(--red-dark); font-weight: 600;
+  }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0 0 4px; }
+  .field { display: flex; justify-content: space-between; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .field:last-child { border-bottom: none; }
+  .field-label { font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+  .field-val { font-size: 13px; font-weight: 500; text-align: right; max-width: 60%; line-height: 1.4; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-end; margin-top: 6px; }
+  .tag {
+    font-size: 12px; padding: 3px 9px; border-radius: 20px;
+    background: var(--bg2); border: 1px solid var(--border); color: var(--text);
+  }
+
+  .skeleton { animation: pulse 1.4s infinite; }
+  .sk { height: 13px; border-radius: 4px; background: var(--bg3); display: inline-block; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .hint {
+    text-align: center; font-size: 12px; color: var(--text3);
+    margin-top: 1.5rem; line-height: 1.6;
+  }
+  .hint a { color: var(--green); text-decoration: none; }
+  .hint a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="flag">🇮🇳</div>
+    <h1>India PIN Code Lookup</h1>
+    <p>Enter a 6-digit postal PIN to find area & location</p>
+  </div>
+
+  <div class="card">
+    <div class="pin-row">
+      <div class="grp" id="g1"></div>
+      <div class="sep"></div>
+      <div class="grp" id="g2"></div>
+    </div>
+    <div class="errmsg" id="errmsg"></div>
+    <div class="actions" style="margin-top:12px;">
+      <button class="btn-primary" id="lbtn" onclick="lookup()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Look up PIN
+      </button>
+      <button class="btn-reset" onclick="reset()" title="Clear">↺</button>
+    </div>
+  </div>
+
+  <div class="card result" id="result">
+    <div class="result-header">
+      <div class="pin-badge">
+        <div class="pin-icon">📍</div>
+        <div>
+          <div class="pin-num" id="r-pin"></div>
+          <div class="pin-sub" id="r-sub"></div>
+        </div>
+      </div>
+      <div id="r-chip"></div>
+    </div>
+    <hr class="divider">
+    <div id="r-fields"></div>
+    <div class="tag-list" id="r-tags" style="margin-top:10px;"></div>
+  </div>
+
+  <p class="hint">
+    Data sourced from <a href="https://api.postalpincode.in" target="_blank">India Post Postal API</a> (free, no key needed)<br>
+    Works offline-capable · No login required · Share freely
+  </p>
+</div>
+
+<script>
+const boxes = [];
+function build() {
+  [document.getElementById('g1'), document.getElementById('g2')].forEach((grp, gi) => {
+    for (let j = 0; j < 3; j++) {
+      const idx = gi * 3 + j;
+      const b = document.createElement('input');
+      b.type = 'tel'; b.maxLength = 1; b.inputMode = 'numeric';
+      b.className = 'pbox'; b.setAttribute('aria-label', 'PIN digit ' + (idx + 1));
+      b.oninput = function () {
+        this.value = this.value.replace(/\D/g, '');
+        document.getElementById('errmsg').textContent = '';
+        this.classList.toggle('has', !!this.value);
+        this.classList.remove('err');
+        if (this.value && idx < 5) boxes[idx + 1].focus();
+      };
+      b.onkeydown = function (e) {
+        if (e.key === 'Backspace' && !this.value && idx > 0) {
+          boxes[idx - 1].value = ''; boxes[idx - 1].classList.remove('has'); boxes[idx - 1].focus();
+        }
+        if (e.key === 'Enter') lookup();
+      };
+      b.onpaste = function (e) {
+        e.preventDefault();
+        const t = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+        t.split('').forEach((ch, x) => { if (boxes[x]) { boxes[x].value = ch; boxes[x].classList.add('has'); } });
+        boxes[Math.min(t.length, 5)].focus();
+      };
+      grp.appendChild(b); boxes.push(b);
+    }
+  });
+  boxes[0].focus();
+}
+
+function getPin() { return boxes.map(b => b.value).join(''); }
+
+function showSkeleton() {
+  const r = document.getElementById('result');
+  r.classList.add('show');
+  document.getElementById('r-pin').innerHTML = '<span class="sk" style="width:100px;height:20px;"></span>';
+  document.getElementById('r-sub').innerHTML = '';
+  document.getElementById('r-chip').innerHTML = '';
+  document.getElementById('r-fields').innerHTML = [1,2,3,4,5,6].map(() =>
+    `<div class="field skeleton"><span class="sk" style="width:70px;"></span><span class="sk" style="width:110px;"></span></div>`
+  ).join('');
+  document.getElementById('r-tags').innerHTML = '';
+}
+
+async function lookup() {
+  const pin = getPin();
+  const errmsg = document.getElementById('errmsg');
+  if (pin.length < 6) {
+    errmsg.textContent = 'Please enter all 6 digits.';
+    boxes.forEach(b => { if (!b.value) b.classList.add('err'); });
+    return;
+  }
+  errmsg.textContent = '';
+  document.getElementById('lbtn').disabled = true;
+  showSkeleton();
+
+  try {
+    const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+    const data = await res.json();
+    render(pin, data);
+  } catch (e) {
+    renderError(pin, 'Network error. Please check your connection and try again.');
+  } finally {
+    document.getElementById('lbtn').disabled = false;
+  }
+}
+
+function render(pin, data) {
+  const r = document.getElementById('result');
+  r.classList.add('show');
+
+  if (!data || data[0].Status !== 'Success' || !data[0].PostOffice) {
+    document.getElementById('r-pin').textContent = pin;
+    document.getElementById('r-sub').textContent = 'Not found';
+    document.getElementById('r-chip').innerHTML = `<span class="invalid-chip">Invalid PIN</span>`;
+    document.getElementById('r-fields').innerHTML = `<p style="font-size:14px;color:var(--text2);padding:1rem 0;text-align:center;">No postal data found for this PIN. Please verify and try again.</p>`;
+    document.getElementById('r-tags').innerHTML = '';
+    return;
+  }
+
+  const offices = data[0].PostOffice;
+  const first = offices[0];
+
+  document.getElementById('r-pin').textContent = pin;
+  document.getElementById('r-sub').textContent = `${first.District}, ${first.State}`;
+  document.getElementById('r-chip').innerHTML = `<span class="valid-chip">✓ Valid</span>`;
+
+  const fields = [
+    ['📍', 'District', first.District],
+    ['🗺️', 'State', first.State],
+    ['🧭', 'Region', first.Region],
+    ['⭕', 'Circle', first.Circle],
+    ['📦', 'Division', first.Division],
+    ['🏠', 'Delivery type', offices[0].DeliveryStatus || 'Delivery'],
+  ];
+
+  document.getElementById('r-fields').innerHTML = fields.map(([icon, label, val]) => `
+    <div class="field">
+      <span class="field-label">${icon} ${label}</span>
+      <span class="field-val">${val || '—'}</span>
+    </div>`).join('');
+
+  document.getElementById('r-tags').innerHTML = `
+    <div style="width:100%;font-size:12px;color:var(--text2);margin-bottom:5px;">Post offices (${offices.length})</div>
+    ${offices.map(o => `<span class="tag">${o.Name}</span>`).join('')}`;
+}
+
+function renderError(pin, msg) {
+  document.getElementById('r-pin').textContent = pin;
+  document.getElementById('r-sub').textContent = '';
+  document.getElementById('r-chip').innerHTML = `<span class="invalid-chip">Error</span>`;
+  document.getElementById('r-fields').innerHTML = `<p style="font-size:14px;color:var(--text2);padding:1rem 0;text-align:center;">${msg}</p>`;
+  document.getElementById('r-tags').innerHTML = '';
+}
+
+function reset() {
+  boxes.forEach(b => { b.value = ''; b.classList.remove('has', 'err'); });
+  document.getElementById('errmsg').textContent = '';
+  document.getElementById('result').classList.remove('show');
+  boxes[0].focus();
+}
+
+build();
+</script>
+</body>
+</html>
